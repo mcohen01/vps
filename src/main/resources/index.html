@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+    <!--[if lt IE 11]>
+    <script src="https://raw.githubusercontent.com/Yaffle/EventSource/master/eventsource.min.js"></script>
+    <![endif]-->
+    <style>
+        .connected { background-color: green; }
+        .disconnected { background-color: red; }
+    </style>
+    <script>
+        // EventSource is pretty easy if you just need server push
+        // but alas, I couldn't figure out how to get raw access to the
+        // Response on the Finch/Finagle side (this is much easier with something like node)
+        var es = new EventSource("notifications");
+        es.onmessage = function(e) {
+            // TODO notification of devices connecting and disconnecting here...
+            // (we could poll, but i'm not going to bother with that for now...)
+            alert(e.data)
+        }
+
+        // this kind of low level jquery manipulation is horrible,
+        // but for a quick and dirty hack it'll do
+        $(document).ready(function() {
+            $.get('/devices', function(data) {
+                var html = '<table>'
+                data.devices.forEach(function(d) {
+                    var bg = d.event_time ? 'disconnected' : 'connected'
+                    html += '<tr><td class="' + bg + '">' + d.device_id + '</td>';
+                    var metric;
+                    // wow, find() is not implemented in Chrome!
+                    // this is semantically poor, but works...
+                    data.metrics.forEach(function(m) {
+                        if (m.device_id === d.device_id) metric = m;
+                    });
+                    if (metric) {
+                        html += '<td>temp: ' + metric.temperature + '</td>';
+                        html += '<td>current: ' + metric.current + '</td>';
+                        html += '<td>voltage: ' + metric.voltage + '</td></tr>';
+                    }
+                });
+                html += '</table>'
+                $('#devices').html(html)
+            })
+        })
+    </script>
+</head>
+<body>
+<div id="devices"></div>
+</body>
+</html>
