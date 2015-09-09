@@ -13,8 +13,6 @@ object Broker {
 
   def main(args: Array[String]) {
 
-    Web.start
-
     val brokerUrl    = conf.getString("broker.url")
     val metricsTopic = conf.getString("broker.topics.metrics")
     val metaTopic    = conf.getString("broker.topics.meta")
@@ -48,8 +46,7 @@ object Broker {
       override def deliveryComplete(token: IMqttDeliveryToken): Unit = {}
     })
 
-    println(Store.devices)
-    println(Store.mostRecentMetrics)
+    Web.start
 
   }
 
